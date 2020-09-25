@@ -3,7 +3,7 @@ const pool = require("../db");
 
 
 //get all nairobi health facilities
-router.get("/nairobihealthfacilities", async(req, res)=>{
+router.get("/api/nairobihealthfacilities", async(req, res)=>{
     try{
         const allNairobiHealthFacilities = await pool.query("SELECT id, ST_AsGeojson(geom)::json as point, name FROM public.nairobi_health_facilities");
         res.json(allNairobiHealthFacilities.rows);
@@ -15,7 +15,7 @@ router.get("/nairobihealthfacilities", async(req, res)=>{
 });
 
 ////get Nairobi Sub-counties
-router.get("/nairobisubcounties" , async(req, res) =>{
+router.get("/api/nairobisubcounties" , async(req, res) =>{
     try{
         const nairobiSubcounties = await pool.query("SELECT id, ST_AsGeojson(geom)::json as point, name FROM public.nairobi_sub_counties");
         res.json(nairobiSubcounties.rows);
@@ -29,7 +29,7 @@ router.get("/nairobisubcounties" , async(req, res) =>{
 
 
 ////get Nearest Health Facilities
-router.get("/nairobihealthfacilities/userlocation=x,y", async(req, res)=>{
+router.get("/api/nairobihealthfacilities/userlocation=x,y", async(req, res)=>{
     try{
         const allNairobiHealthFacilities = await pool.query("SELECT nhf.id, nhf.name, nhf.geom, ST_Distance(nhf.geom,ST_SetSRID(ST_Point(:userLongitude,:userLatitude),4326)) AS distance "
                                                              + "FROM nairobi_Health_facilities nhf "
@@ -44,7 +44,7 @@ router.get("/nairobihealthfacilities/userlocation=x,y", async(req, res)=>{
 });
 
 ////get Health Facilities withib a SubCounty
-router.get("/nairobihealthfacilities/subcountyId}", async(req, res)=>{
+router.get("/api/nairobihealthfacilities/subcountyId}", async(req, res)=>{
     try{
         const nairobiHealthFacilitiesWithinSubCounty = await pool.query("SELECT nhf.id, nhf.name, nhf.geom "
                                                                         +"FROM nairobi_Health_facilities nhf, nairobi_sub_counties nsc" 
