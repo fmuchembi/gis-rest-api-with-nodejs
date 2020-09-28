@@ -17,7 +17,7 @@ router.get("/api/nairobihealthfacilities", async(req, res)=>{
 ////get Nairobi Sub-counties
 router.get("/api/nairobisubcounties" , async(req, res) =>{
     try{
-        const nairobiSubcounties = await pool.query("SELECT id, ST_AsGeojson(geom)::json as point, name FROM public.nairobi_sub_counties");
+        const nairobiSubcounties = await pool.query("SELECT id, ST_AsGeojson(geom)::json as polygon, name FROM public.nairobi_sub_counties");
         res.json(nairobiSubcounties.rows);
 
     }
@@ -29,9 +29,9 @@ router.get("/api/nairobisubcounties" , async(req, res) =>{
 
 
 ////get Nearest Health Facilities
-router.get("/api/nairobihealthfacilities/userlocation=x,y", async(req, res)=>{
+router.get("/api/nairobihealthfacilities/nearerstfacility?userlocation=x,y", async(req, res)=>{
     try{
-        const allNairobiHealthFacilities = await pool.query("SELECT nhf.id, nhf.name, nhf.geom, ST_Distance(nhf.geom,ST_SetSRID(ST_Point(:userLongitude,:userLatitude),4326)) AS distance "
+        const allNairobiHealthFacilities = await pool.query("SELECT nhf.id, nhf.name, ST_AsGeojson(nhf.geom)::json, ST_Distance(nhf.geom,ST_SetSRID(ST_Point(:userLongitude,:userLatitude),4326)) AS distance "
                                                              + "FROM nairobi_Health_facilities nhf "
                                                              + "ORDER BY nhf.geom  <-> ST_SetSRID(ST_Point(:userLongitude,:userLatitude),4326) "
                                                              + "LIMIT 5",{userLongitude:req.userlocation[0],userLatitude:req.userlocation[1]});
@@ -44,7 +44,7 @@ router.get("/api/nairobihealthfacilities/userlocation=x,y", async(req, res)=>{
 });
 
 ////get Health Facilities withib a SubCounty
-router.get("/api/nairobihealthfacilities/subcountyId}", async(req, res)=>{
+router.get("/api/nairobihealthfacilities/withinsubcounty?subcountyId=subcountyId", async(req, res)=>{
     try{
         const nairobiHealthFacilitiesWithinSubCounty = await pool.query("SELECT nhf.id, nhf.name, nhf.geom "
                                                                         +"FROM nairobi_Health_facilities nhf, nairobi_sub_counties nsc" 
