@@ -31,10 +31,11 @@ router.get("/api/nairobisubcounties" , async(req, res) =>{
 ////get Nearest Health Facilities
 router.get("/api/nairobihealthfacilities/nearerstfacility?userlocation=x,y", async(req, res)=>{
     try{
+        //const {userlocation} = req.params;
         const allNairobiHealthFacilities = await pool.query("SELECT nhf.id, nhf.name, ST_AsGeojson(nhf.geom)::json, ST_Distance(nhf.geom,ST_SetSRID(ST_Point(:userLongitude,:userLatitude),4326)) AS distance "
                                                              + "FROM nairobi_Health_facilities nhf "
                                                              + "ORDER BY nhf.geom  <-> ST_SetSRID(ST_Point(:userLongitude,:userLatitude),4326) "
-                                                             + "LIMIT 5",{userLongitude:req.userlocation[0],userLatitude:req.userlocation[1]});
+                                                             + "LIMIT 5",{userLongitude:userlocation[0],userLatitude:userlocation[1]});
         res.json(allNairobiHealthFacilities.rows);
 
     }catch(err){
@@ -43,12 +44,13 @@ router.get("/api/nairobihealthfacilities/nearerstfacility?userlocation=x,y", asy
     }
 });
 
-////get Health Facilities withib a SubCounty
-router.get("/api/nairobihealthfacilities/withinsubcounty?subcountyId=subcountyId", async(req, res)=>{
+////get Health Facilities within a SubCounty
+router.get("/api/nairobihealthfacilities/withinsubcounty/:name", async(req, res)=>{
     try{
+        const {name} = req.body;
         const nairobiHealthFacilitiesWithinSubCounty = await pool.query("SELECT nhf.id, nhf.name, nhf.geom "
                                                                         +"FROM nairobi_Health_facilities nhf, nairobi_sub_counties nsc" 
-                                                                        +"WHERE ST_Within(nhf.geom, nsc.geom) AND nsc.id=(:id)", {id: req.subcountyId});
+                                                                        +"WHERE ST_Within(nhf.geom, nsc.geom) AND nsc.name=(:name)", [name]);
         res.json(nairobiHealthFacilitiesWithinSubCounty.rows);
 
     }catch(err){ 
