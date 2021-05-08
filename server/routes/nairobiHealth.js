@@ -5,7 +5,7 @@ const pool = require("../db");
 //get all nairobi health facilities
 router.get("/api/nairobihealthfacilities", async(req, res)=>{
     try{
-        const allNairobiHealthFacilities = await pool.query("SELECT id, ST_AsGeojson(geom)::json as point, name FROM public.nairobi_health_facilities");
+        const allNairobiHealthFacilities = await pool.query("SELECT id, ST_AsGeojson(geom)::json as point, name FROM nairobi_health_facilities");
         res.json(allNairobiHealthFacilities.rows);
 
     }catch(err){
@@ -17,7 +17,7 @@ router.get("/api/nairobihealthfacilities", async(req, res)=>{
 ////get Nairobi Sub-counties
 router.get("/api/nairobisubcounties" , async(req, res) =>{
     try{
-        const nairobiSubcounties = await pool.query("SELECT id, ST_AsGeojson(geom)::json as polygon, name FROM public.nairobi_sub_counties");
+        const nairobiSubcounties = await pool.query("SELECT id, ST_AsGeojson(geom)::json as polygon, name FROM nairobi_subcounties");
         res.json(nairobiSubcounties.rows);
 
     }
@@ -27,10 +27,34 @@ router.get("/api/nairobisubcounties" , async(req, res) =>{
     }
 });
 
+//get Health Facilities within a SubCounty
+router.get("/api/nairobihealthfacilities/withinsubcounty/:name", async (req, res) => {
+    try {
+        const { name } = req.params;
+        const nairobiHealthFacilitiesWithinSubCounty = await pool.query("SELECT nhf.name, ST_AsGeojson(nhf.geom)::json as point FROM nairobi_health_facilities nhf, nairobi_subcounties nsc WHERE ST_Within(nhf.geom, nsc.geom) AND nsc.name =$1", [name]);
+        res.json(nairobiHealthFacilitiesWithinSubCounty.rows);
 
-////get Nearest Health Facilities
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("server errors" + error.message);
+    }
+});
 
-////get Health Facilities within a SubCounty
+
+//get Nearest Health Facilities
+router.get("/api/nairobihealthfacilities/nearerstfacility/:lat/:lon", async(req, res)=>{
+    try{
+        const {lat} = request.params;
+        const {lon} = request.params;
+        const allNairobiHealthFacilities = await pool.query("SELECT nhf.id, nhf.name, ST_AsGeojson(nhf.geom)::json, ST_Distance(nhf.geom,ST_SetSRID(ST_Point(lat, lon($1,$2)),4326)) AS distance FROM nairobi_Health_facilities nhf ORDER BY distance LIMIT 5", [lat,lon]);
+        res.json(allNairobiHealthFacilities.rows);
+
+    }catch(error){
+        console.error(error.message);
+        res.status(500).send("server error" + error.message);
+    }
+});
+
 
 
 
