@@ -44,7 +44,9 @@ router.get("/api/nairobihealthfacilities/withinsubcounty/:name", async (req, res
 //get Nearest Health Facilities
 router.get("/api/nairobihealthfacilities/nearerstfacility/:lat/:lon", async(req, res)=>{
     try{
-        const allNairobiHealthFacilities = await pool.query("SELECT nhf.id, nhf.name, ST_AsGeojson(nhf.geom)::json, ST_Distance(nhf.geom,ST_SetSRID(ST_Point(lat, lon($1,$2)),4326)) AS distance FROM nairobi_Health_facilities nhf ORDER BY distance LIMIT 5", [lat,lon]);
+        const {lat} = req.params;
+        const {lon} = req.params;
+        const allNairobiHealthFacilities = await pool.query("SELECT nhf.id, nhf.name, ST_AsGeojson(nhf.geom)::json, ST_Distance(nhf.geom,ST_SetSRID(ST_Point($1,$2),4326)) AS distance FROM nairobi_Health_facilities nhf ORDER BY distance LIMIT 3", [lat,lon]);
         res.json(allNairobiHealthFacilities.rows);
 
     }catch(error){
