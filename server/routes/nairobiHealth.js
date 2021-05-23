@@ -46,7 +46,7 @@ router.get("/api/nairobihealthfacilities/nearerstfacility/:lat/:lon", async(req,
     try{
         const {lat} = req.params;
         const {lon} = req.params;
-        const nearestHealthCenter = await pool.query("SELECT nhf.id, nhf.name, ST_AsGeojson(nhf.geom)::json, ST_Distance(nhf.geom,ST_SetSRID(ST_Point($1,$2),4326)) AS distance FROM nairobi_Health_facilities nhf ORDER BY distance LIMIT 3", [lat,lon]);
+        const nearestHealthCenter = await pool.query("SELECT nhf.id, nhf.name, ST_AsGeojson(nhf.geom)::json as point, ST_Distance(nhf.geom,ST_SetSRID(ST_Point($1,$2),4326)) AS distance FROM nairobi_Health_facilities nhf ORDER BY distance LIMIT 3", [lat,lon]);
         res.json(nearestHealthCenter.rows);
 
     }catch(error){
